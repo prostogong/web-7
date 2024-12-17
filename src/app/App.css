@@ -1,0 +1,76 @@
+/* html {
+  height: 100%;
+  background-color: #727272;
+}
+
+.head {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.select,
+.button_run {
+  background-color: #009d6c;
+  color: #793400;
+  border-radius: 10px;
+  border-color: #009d6c;
+  font-size: 16px;
+  width: 100px;
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.text,
+.result {
+  font-size: 16px;
+  color: #000000;
+  margin-block: 5px;
+}
+
+.input {
+  min-width: 100px;
+  width: 150px;
+}
+
+.separator {
+  margin-block: 5px;
+  padding: 0;
+  height: 6px;
+  border: none;
+  background: #009d6c;
+}
+
+.body {
+  display: flex;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+      animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #d5f100;
+} */

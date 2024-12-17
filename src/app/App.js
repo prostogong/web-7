@@ -1,97 +1,108 @@
-import { Component } from 'react'
-import { TodoPage } from '../pages/TodoPage/TodoPage';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { Layout } from '../pages/Layout';
-import { AppContext } from './context';
+import './App.css';
+import React from 'react'
 
-// Создание роутера приложения, который в зависимости от url отрисовывает
-// определенную компоненту
-// Ссылка на документацию: https://reactrouter.com/en/main/start/tutorial (демонстрация нового API)
-// Ссылка на видеокурс по маршрутизации: https://www.youtube.com/playlist?list=PLiZoB8JBsdznY1XwBcBhHL9L7S_shPGVE (старый API, но смысл такой же)
-const router = createBrowserRouter([
-    {
-        // Корневая компонента по url: "/". Она отрисовывает лэйаут приложения,
-        // куда подставляется контент странички
-        path: '/',
-        element: <Layout />,
-        // Вложенные роуты, которые будут подставляться в лэйаут
-        children: [
-            {
-                // Это свойство позволяет задать элемент по умолчанию для родительского роута
-                // То есть, если в адресной строке url будет "/", то отрисуется этот element
-                index: true,
-                element: <h1>Главная страница</h1>
-            },
-            {
-                path: '/login',
-                element: <h1>Логин</h1>
-            },
-            {
-                path: '/todos',
-                element: <TodoPage />,
-                index: true
-            },
-            {
-                path: '/register',
-                element: <h1>Регистрация</h1>
-            }
-        ]
-    },
-    {
-        // Другой корневой url-путь, который тоже может содержать лейаут, а может и нет
-        path: '/root',
-        element: <h2>Другой лейаут</h2>
-    }
-])
-
-// Компонента приложения, которая содержит состояние приложения. Именно она вмортируется в div#root, который
-// описан в index.html
-export class App extends Component {
+const URL = [
+    "localhost:8082",
+    "localhost:8083/api/user?name=",
+    "localhost:8081/count"
+];
+  
+class App extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { indexProgram: 0, indexRequest: 0, url: URL[0], inputText: "", result: "", requestStatus: "" };
 
-        // Задаем объект пользователя
-        this.state = {
-            user: undefined
-        };
     }
 
-    // Метод отрисовки компоненты
+    handleChangeProgram(event) {
+        this.setState({ indexProgram: event.target.value, url: URL[event.target.value] });
+        this.clearFields();
+    }
+
+    handleChangeRequst(event) {
+        this.setState({ indexRequest: event.target.value });
+        this.clearFields();
+    }
+
+    clearFields() {
+        this.setState({ inputText: "", requestStatus: "", result: "" })
+    }
+
+    handleChangeInput(event) {
+        this.setState({ inputText: event.target.value })
+        if (this.state.indexProgram == 1) {
+            this.setState({ url: URL[1] + encodeURIComponent(event.target.value) })
+        }
+    }
+    handleClick() {
+        this.setState({ requestStatus: "", result: "" })
+        if (this.state.indexRequest == 0) {
+            fetch(`http://${this.state.url}`).then(async (response) => {
+                let responseValue = await response.text();
+                let responseStatus = response.status;
+                this.setState({ requestStatus: responseStatus, result: responseValue });
+            }).catch((err) => {
+                this.setState({ requestStatus: 500, result: "Ошибка соединения!" });
+            })
+        } else {
+            let formData = new FormData();
+            formData.append('count', this.state.inputText);
+            fetch(`http://${this.state.url}`, {
+                method: 'POST',
+                body: formData
+            }).then(async (response) => {
+                let responseValue = await response.text();
+                let responseStatus = response.status;
+                this.setState({ requestStatus: responseStatus, result: responseValue });
+            }).catch((err) => {
+                this.setState({ requestStatus: 500, result: "Ошибка соединения!" });
+            })
+        }
+    }
     render() {
         return (
-            // Провайдинг контекста. Контекст работает по принципу шины. Через него компонента App
-            // предоставляет данные дочерним компонентам. Использование контекста позволяет избежать такой проблемы
-            // как props drilling или сквозной передачи пропсов через множество компонент.
-            // Контекст имеет пропс value, куда мы передаем объект, содержащий данные контекста
-            // Видеоролик по React Context: https://www.youtube.com/watch?v=W_-TO_reSGs
-            // В этом ролике автор показывает синтаксис работы с контекстом для функциональных компонент. В целом можете использовать пример,
-            // который рассматривали на семинар, но так же можете воспользоваться примером из урока
-           <AppContext.Provider value={{
-                user: this.state.user,
-                login: this.#login.bind(this),
-                logout: this.#logout.bind(this)
-            }}>
-                {/* // Компонента провайдинга роутера. Ее использование важно для работы маршрутизации приложения
-                // Чтобы роутер заработал, ему необходмо передатать объект конфигурации роутера в качестве пропса */}
-                <RouterProvider router={router} />
-           </AppContext.Provider>
+            <div className='App'>
+                <div className='head'>
+                    <div className='head_program'>
+                        <label className='text'>Программа</label>
+                        <select className='select' value={this.state.indexProgram} onChange={(event) => this.handleChangeProgram(event)}>
+                            <option value="0">Hello</option>
+                            <option value="1">Query</option>
+                            <option value="2">Count</option>
+                        </select>
+                    </div>
+                    <button className='button_run' onClick={() => this.handleClick()}>Отправить</button>
+                    <div className='head_request'>
+                        <label className='text'>Запрос</label>
+                        <select className='select' value={this.state.indexRequest} onChange={(event) => this.handleChangeRequst(event)}>
+                            <option value="0">GET</option>
+                            {this.state.indexProgram == 2 && <option value="1">POST</option>}
+                        </select>
+                    </div>
+                </div>
+                <hr className='separator'></hr>
+                {(this.state.indexProgram == 1 || (this.state.indexProgram == 2 && this.state.indexRequest == 1)) &&
+                    <>
+                        <div className='body'>
+                            {this.state.indexProgram == 1 && <>
+                                <div className='text'><strong>Query Params</strong></div>
+                                <label className='text'>name: <input className="input" value={this.state.inputText} onChange={(event) => this.handleChangeInput(event)} /></label>
+                            </>}
+                            {this.state.indexProgram == 2 && <>
+                                <div className='text'><strong>Form Params</strong></div>
+                                <label className='text'>count: <input className="input" value={this.state.inputText} onChange={(event) => this.handleChangeInput(event)} /></label>
+                            </>}
+                        </div>
+                        <hr className='separator'></hr>
+                    </>}
+                <div className='body'>
+                    <label className='text'><strong>URL: </strong> {this.state.url}</label>
+                    <div className='text'><strong>Результат: </strong>{this.state.result}</div>
+                    <div className='text'>Статус: {this.state.requestStatus}</div>
+                </div>
+            </div>
         );
     }
-
-    // Метод, имитирующий процесс авторизации пользователя
-    #login() {
-        this.setState({
-            user: {
-                name: 'Вася Пупкин',
-                email: 'Почта'
-            }
-        })
-    }
-
-    // Метод, имитирующий процесс выхода из приложения
-    #logout() {
-        this.setState({
-            user: undefined
-        })
-    }
 }
+
+export default App;
